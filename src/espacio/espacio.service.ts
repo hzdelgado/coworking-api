@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, LessThanOrEqual } from 'typeorm';
 import { Espacio } from './espacio.entity';
 import { Reservacion } from '../reservacion/reservacion.entity';
 
@@ -20,14 +20,21 @@ export class EspacioService {
    * @param hora - Verificar disponibilidad en una hora específica.
    */
   async findAvailable(nombre?: string, capacidad?: number, hora?: Date) {
-    // Buscar todos los espacios con el filtro de nombre y capacidad
+    const whereConditions: any = [];
+
+    if (nombre) {
+      whereConditions.push({ nombreSede: nombre });
+    }
+  
+    if (capacidad) {
+      whereConditions.push({ capacidad: LessThanOrEqual(capacidad) });
+    }
+  
     const espacios = await this.espacioRepository.find({
-      where: [
-        nombre ? { nombreSede: nombre } : {},
-        capacidad ? { capacidad: capacidad } : {},
-      ],
+      where: whereConditions,
       relations: ['reservaciones'],
     });
+  
 
     if (!hora) {
       return espacios; // Si no se proporciona hora, devolver todos los resultados filtrados

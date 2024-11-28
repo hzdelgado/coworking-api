@@ -15,4 +15,13 @@ export class Reservacion {
   @ManyToOne(() => Espacio, (espacio) => espacio.reservaciones)
   @JoinColumn({ name: 'id_espacio' })
   espacio: Espacio;
+
+
+  // Nuevo campo "email"
+  @Column({ name: 'email', type: 'varchar', length: 255, nullable: false })
+  email: string;
+
+  @Column({ name: 'codigo_reservacion', type: 'varchar', length: 255, nullable: false })
+  codigoReservacion: string;
+
 }
