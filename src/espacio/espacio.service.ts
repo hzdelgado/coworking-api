@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual } from 'typeorm';
 import { Espacio } from './espacio.entity';
 import { Reservacion } from '../reservacion/reservacion.entity';
+import { CreateEspacioDto } from 'src/dto/create-space-dto';
 
 @Injectable()
 export class EspacioService {
@@ -61,4 +62,18 @@ export class EspacioService {
 
     return espaciosDisponibles;
   }
+
+  
+  async create(createEspacioDto: CreateEspacioDto): Promise<Espacio> {
+    const { nombreSede, capacidad } = createEspacioDto;
+    // Creamos una nueva instancia de la entidad Espacio
+    const nuevoEspacio = this.espacioRepository.create({
+      nombreSede,
+      capacidad
+    });
+
+    // Guardamos el nuevo espacio en la base de datos
+    return await this.espacioRepository.save(nuevoEspacio);
+  }
+
 }

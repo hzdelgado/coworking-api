@@ -1,5 +1,6 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { EspacioService } from './espacio.service';
+import { CreateEspacioDto } from 'src/dto/create-space-dto';
 
 @Controller('espacios')
 export class EspacioController {
@@ -21,5 +22,10 @@ export class EspacioController {
     const parsedHora = hora ? new Date(hora) : undefined;
 
     return this.espacioService.findAvailable(nombre, capacidad, parsedHora);
+  }
+
+  @Post()
+  async create(@Body() createEspacioDto: CreateEspacioDto) {
+    return this.espacioService.create(createEspacioDto);
   }
 }
