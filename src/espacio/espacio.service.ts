@@ -21,48 +21,45 @@ export class EspacioService {
    * @param hora - Verificar disponibilidad en una hora específica.
    */
   async findAvailable(nombre?: string, capacidad?: number, hora?: Date) {
-    const whereConditions: any = [];
-
+    const queryBuilder = this.espacioRepository.createQueryBuilder('espacio')
+      .leftJoinAndSelect('espacio.reservaciones', 'reservacion');
+  
+    // Agregar condición para buscar por nombre (usando ILIKE para búsqueda parcial)
     if (nombre) {
-      whereConditions.push({ nombreSede: nombre });
+      queryBuilder.andWhere('espacio.nombre_sede ILIKE :nombre', { nombre: `%${nombre}%` });
     }
   
+    // Agregar condición para capacidad
     if (capacidad) {
-      whereConditions.push({ capacidad: LessThanOrEqual(capacidad) });
+      queryBuilder.andWhere('espacio.capacidad <= :capacidad', { capacidad });
     }
   
-    const espacios = await this.espacioRepository.find({
-      where: whereConditions,
-      relations: ['reservaciones'],
-    });
+    const espacios = await queryBuilder.getMany();
   
-
     if (!hora) {
-      return espacios; // Si no se proporciona hora, devolver todos los resultados filtrados
+      return espacios; // Si no se proporciona hora, devolver los espacios filtrados
     }
-
-    // Verificar conflictos de horario en reservaciones
+  
+    // Filtrar espacios por conflictos de horario
     const espaciosDisponibles = [];
-
     for (const espacio of espacios) {
       const reservacionesEnHora = await this.reservacionRepository.findOne({
         where: {
           espacio: { id: espacio.id },
           horaReservacion: Between(
             new Date(hora),
-            new Date(new Date(hora).getTime() + 60 * 60 * 1000), // +1 hora
+            new Date(new Date(hora).getTime() + 60 * 60 * 1000) // +1 hora
           ),
         },
       });
-
+  
       if (!reservacionesEnHora) {
         espaciosDisponibles.push(espacio);
       }
     }
-
+  
     return espaciosDisponibles;
   }
-
   
   async create(createEspacioDto: CreateEspacioDto): Promise<Espacio> {
     const { nombreSede, capacidad } = createEspacioDto;
