@@ -16,5 +16,8 @@ export const AppDataSource = new DataSource({
   name: 'default',
   synchronize: false,
   entities: [Reservacion, Espacio, join(__dirname, '**', '*.entity.{ts,js}')],
-  migrations: [join(__dirname, '/migrations/*{.ts,.js}')],
+  migrations: [
+    join(__dirname, '/migrations/1732903581664-create-tables-espacio-reservacion.ts'),
+    join(__dirname, '/migrations/*{.ts,.js}')
+  ],
 });
