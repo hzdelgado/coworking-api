@@ -8,7 +8,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      'https://coworking-api-production-8073.up.railway.app',
+      'https://coworking-app-production.up.railway.app',
       'http://localhost:4200'
     ],
     methods: 'GET, POST, PUT, DELETE',
