@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { Reservacion } from './reservacion.entity';
@@ -37,7 +37,7 @@ export class ReservacionService {
     // Verificamos si el espacio existe
     const espacio = await this.espacioRepository.findOneBy({ id: espacioId });
     if (!espacio) {
-      throw new Error('Espacio no encontrado');
+      throw new HttpException('Espacio no encontrado', HttpStatus.BAD_REQUEST);
     }
 
     // Verificamos si ya existe una reservación en la misma hora para ese espacio
@@ -51,7 +51,7 @@ export class ReservacionService {
       },
     });
     if (existingReservation) {
-      throw new Error('Ya existe una reservación en esa hora para el espacio');
+      throw new HttpException('Ya existe una reservación en esa hora para el espacio', HttpStatus.BAD_REQUEST);
     }
 
     const codigoReservacion = this.generarCodigoAlfanumerico(); // Generar código aquí
@@ -83,9 +83,8 @@ export class ReservacionService {
     });
 
     if (!reservas.length) {
-      throw new Error(
-        'No se encontró ninguna reserva para este documento de identidad.'
-      );
+      throw new HttpException(
+        'No se encontró ninguna reserva para este documento de identidad.', HttpStatus.BAD_REQUEST);
     }
 
     const reserva = reservas[0];
@@ -94,7 +93,7 @@ export class ReservacionService {
 
     // Validar si la reserva ha vencido
     if (horaReservacion < now) {
-      throw new Error('La reserva ha vencido.');
+      throw new HttpException('La reserva ha vencido.', HttpStatus.BAD_REQUEST);
     }
 
     // Formatear la fecha
