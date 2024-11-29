@@ -11,23 +11,27 @@ export class ReservacionService {
     @InjectRepository(Reservacion)
     private reservacionRepository: Repository<Reservacion>,
     @InjectRepository(Espacio)
-    private espacioRepository: Repository<Espacio>
+    private espacioRepository: Repository<Espacio>,
   ) {}
-  
+
   generarCodigoAlfanumerico(): string {
-    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const caracteres =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let codigo = '';
-    
+
     for (let i = 0; i < 6; i++) {
       const randomIndex = Math.floor(Math.random() * caracteres.length);
       codigo += caracteres[randomIndex];
     }
-    
+
     return codigo.toUpperCase();
   }
   // Método para crear una nueva reservación
-  async create(createReservacionDto: CreateReservacionDto): Promise<Reservacion> {
-    const { documentoIdentidad, horaReservacion, email, espacioId } = createReservacionDto;
+  async create(
+    createReservacionDto: CreateReservacionDto,
+  ): Promise<Reservacion> {
+    const { documentoIdentidad, horaReservacion, email, espacioId } =
+      createReservacionDto;
 
     // Verificamos si el espacio existe
     const espacio = await this.espacioRepository.findOneBy({ id: espacioId });
@@ -38,11 +42,11 @@ export class ReservacionService {
     // Verificamos si ya existe una reservación en la misma hora para ese espacio
     const existingReservation = await this.reservacionRepository.findOne({
       where: {
-        espacio: { id: espacio.id},
+        espacio: { id: espacio.id },
         horaReservacion: Between(
-            new Date(horaReservacion),
-            new Date(new Date(horaReservacion).getTime() + 60 * 60 * 1000), // +1 hora
-          ),
+          new Date(horaReservacion),
+          new Date(new Date(horaReservacion).getTime() + 60 * 60 * 1000), // +1 hora
+        ),
       },
     });
     if (existingReservation) {
@@ -57,14 +61,15 @@ export class ReservacionService {
       horaReservacion,
       espacio,
       email,
-      codigoReservacion
+      codigoReservacion,
     });
 
     return this.reservacionRepository.save(reservacion);
   }
 
-  // Método para obtener una reservación por el número de documento de identidad
-  async findByDocumentoIdentidad(documentoIdentidad: string): Promise<Reservacion> {
+  async findByDocumentoIdentidad(
+    documentoIdentidad: string,
+  ): Promise<Reservacion> {
     const reservas = await this.reservacionRepository.find({
       where: {
         documentoIdentidad,
@@ -75,9 +80,29 @@ export class ReservacionService {
       },
       take: 1, // Limita el resultado a la reserva más reciente
     });
-  
-    // Retorna la primera reserva de la lista (la más reciente)
-    return reservas[0];
-  }  
 
+    if (!reservas.length) {
+      throw new Error(
+        'No se encontró ninguna reserva para este documento de identidad.'
+      );
+    }
+
+    const reserva = reservas[0];
+    const horaReservacion = new Date(reserva.horaReservacion);
+    const now = new Date();
+
+    // Validar si la reserva ha vencido
+    if (horaReservacion < now) {
+      throw new Error('La reserva ha vencido.');
+    }
+
+    // Formatear la fecha
+    reserva.horaReservacion = format(
+      horaReservacion,
+      'dd/MM/yyyy HH:mm:ss',
+    ) as unknown as Date;
+
+    // Retornar la reserva completa
+    return reserva;
+  }
 }
