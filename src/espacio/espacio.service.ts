@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual } from 'typeorm';
 import { Espacio } from './espacio.entity';
@@ -21,6 +21,13 @@ export class EspacioService {
    * @param hora - Verificar disponibilidad en una hora específica.
    */
   async findAvailable(nombre?: string, capacidad?: number, hora?: Date) {
+    const ahora = new Date();
+
+    // Validar que la hora proporcionada sea al menos 2 horas después de la hora actual
+    if (hora && hora.getTime() <= ahora.getTime() + 2 * 60 * 60 * 1000) {
+      throw new HttpException('La hora proporcionada debe ser al menos 2 horas después de la hora actual.', HttpStatus.BAD_REQUEST);
+    }
+    
     const queryBuilder = this.espacioRepository.createQueryBuilder('espacio')
       .leftJoinAndSelect('espacio.reservaciones', 'reservacion');
   
