@@ -60,7 +60,7 @@ yarn run build
 yarn run start:prod
 ```
 La API estará disponible en `http://localhost:3000`.
-### Configuración del Proyecto
+## Configuración del Proyecto
 - `src/`: Contiene todo el código fuente.
 - `src/modules/`: Módulos de la aplicación (por ejemplo, espacio y reservación).
 - `src/migrations/`: Archivos de migración para la base de datos.
